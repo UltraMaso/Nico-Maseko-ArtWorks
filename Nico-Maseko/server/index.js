@@ -69,7 +69,24 @@ const getAllArtworks = () => {
   })
 }
 
-app.use(cors({ origin: 'http://localhost:5173' }))
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:3000',
+  'https://nico-maseko-artworks-web.onrender.com',
+  'https://nico-maseko-artworks.onrender.com',
+]
+
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true)
+      return
+    }
+
+    callback(new Error('Not allowed by CORS'))
+  },
+  credentials: true,
+}))
 app.use(express.json())
 
 const authMiddleware = async (req, res, next) => {
