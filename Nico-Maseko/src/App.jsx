@@ -2,6 +2,11 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { BrowserRouter, Link, Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import './App.css'
 
+const getApiUrl = (path) => {
+  const baseUrl = import.meta.env.VITE_API_URL || ''
+  return `${baseUrl.replace(/\/$/, '')}${path}`
+}
+
 function NavBar({ isAdmin, token, logout }) {
   const location = useLocation()
   return (
@@ -266,7 +271,7 @@ function App() {
 
   const fetchArtworks = async () => {
     try {
-      const response = await fetch('/api/artworks')
+      const response = await fetch(getApiUrl('/api/artworks'))
       const data = await response.json()
       setArtworks(data)
       if (data.length && slideIndex >= data.length) setSlideIndex(0)
@@ -279,7 +284,7 @@ function App() {
   const fetchAdminArtworks = async (authToken = token, authRole = role) => {
     if (!authToken || authRole !== 'admin') return
     try {
-      const response = await fetch('/api/admin/artworks', {
+      const response = await fetch(getApiUrl('/api/admin/artworks'), {
         headers: { Authorization: `Bearer ${authToken}` },
       })
       const data = await response.json()
@@ -297,7 +302,7 @@ function App() {
     setStatusMessage('')
 
     try {
-      const response = await fetch('/api/login', {
+      const response = await fetch(getApiUrl('/api/login'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password }),
@@ -329,7 +334,7 @@ function App() {
 
     try {
       setStatusMessage('Uploading artwork...')
-      const response = await fetch('/api/artworks', {
+      const response = await fetch(getApiUrl('/api/artworks'), {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
         body: formData,
@@ -351,7 +356,7 @@ function App() {
   const handleDelete = async (id) => {
     if (!window.confirm('Remove this artwork from the gallery?')) return
     try {
-      const response = await fetch(`/api/artworks/${id}`, {
+      const response = await fetch(getApiUrl(`/api/artworks/${id}`), {
         method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` },
       })
@@ -367,7 +372,7 @@ function App() {
 
   const handleFeature = async (id, isFeatured) => {
     try {
-      const response = await fetch(`/api/artworks/${id}`, {
+      const response = await fetch(getApiUrl(`/api/artworks/${id}`), {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -389,7 +394,7 @@ function App() {
     event.preventDefault()
     setBackgroundMessage('')
     try {
-      const response = await fetch('/api/background', {
+      const response = await fetch(getApiUrl('/api/background'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -407,7 +412,7 @@ function App() {
 
   const handlePublish = async (id, isPublished) => {
     try {
-      const response = await fetch(`/api/artworks/${id}`, {
+      const response = await fetch(getApiUrl(`/api/artworks/${id}`), {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
