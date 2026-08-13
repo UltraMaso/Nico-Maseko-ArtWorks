@@ -9,6 +9,7 @@ import sharp from 'sharp'
 import fs from 'fs'
 import path from 'path'
 import { fileURLToPath } from 'url'
+import mongoose from 'mongoose'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -202,6 +203,17 @@ app.post('/api/background', authMiddleware, async (req, res) => {
 app.get('/health', (req, res) => res.json({ status: 'ok' }))
 
 const startServer = async () => {
+  try {
+    if (process.env.MONGO_URI) {
+      await mongoose.connect(process.env.MONGO_URI)
+      console.log('Connected to MongoDB')
+    } else {
+      console.log('MONGO_URI not set; using local JSON store only')
+    }
+  } catch (error) {
+    console.error('MongoDB connection failed:', error.message)
+  }
+
   ensureAdminUser()
   app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`))
 }
