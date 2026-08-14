@@ -213,7 +213,6 @@ function AdminPage({
 }) {
   return (
     <div className="panel admin-panel">
-      <h2>Admin controls</h2>
       <form onSubmit={handleUpload} className="form-grid">
         <label>
           Title
@@ -248,7 +247,7 @@ function AdminPage({
       </form>
 
       <form onSubmit={handleCreateAlbum} className="form-grid album-form">
-        <h3>Create album</h3>
+        <h3>New album</h3>
         <label>
           Album title
           <input value={albumTitle} onChange={(event) => setAlbumTitle(event.target.value)} />
@@ -348,7 +347,6 @@ function AdminPage({
       </div>
 
       <div className="admin-list">
-        <h3>Manage albums</h3>
         {adminAlbums.length ? (
           adminAlbums.map((album) => (
             <div key={album.id} className="admin-item">
