@@ -27,6 +27,7 @@ const ensureDataStore = () => {
     const defaultStore = {
       users: [],
       artworks: [],
+      albums: [],
     }
     fs.writeFileSync(STORE_PATH, JSON.stringify(defaultStore, null, 2))
   }
@@ -68,6 +69,31 @@ const getAllArtworks = () => {
     return new Date(b.createdAt) - new Date(a.createdAt)
   })
 }
+
+const getAllAlbums = () => {
+  const store = readStore()
+  return [...store.albums].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+}
+
+const wrapAlbum = (album) => ({
+  id: album.id,
+  title: album.title,
+  description: album.description,
+  published: album.published,
+  featured: album.featured,
+  createdAt: album.createdAt,
+  cover: album.cover || album.items?.[0] || null,
+  mediaCount: album.items?.length || 0,
+  items: (album.items || []).map((item) => ({
+    id: item.id,
+    title: item.title,
+    type: item.type,
+    mimeType: item.mimeType,
+    imageData: item.imageData || '',
+    videoData: item.videoData || '',
+    dataUrl: item.dataUrl || '',
+  })),
+})
 
 const allowedOrigins = [
   'http://localhost:5173',
@@ -130,6 +156,11 @@ app.get('/api/artworks', async (req, res) => {
   res.json(formatted)
 })
 
+app.get('/api/albums', async (req, res) => {
+  const albums = getAllAlbums().filter((album) => album.published)
+  res.json(albums.map((album) => wrapAlbum(album)))
+})
+
 app.get('/api/admin/artworks', authMiddleware, async (req, res) => {
   if (req.user.role !== 'admin') return res.status(403).json({ message: 'Forbidden' })
 
@@ -144,6 +175,13 @@ app.get('/api/admin/artworks', authMiddleware, async (req, res) => {
     published: art.published,
   }))
   res.json(formatted)
+})
+
+app.get('/api/admin/albums', authMiddleware, async (req, res) => {
+  if (req.user.role !== 'admin') return res.status(403).json({ message: 'Forbidden' })
+
+  const albums = getAllAlbums()
+  res.json(albums.map((album) => wrapAlbum(album)))
 })
 
 app.post('/api/artworks', authMiddleware, upload.single('image'), async (req, res) => {
@@ -181,6 +219,46 @@ app.post('/api/artworks', authMiddleware, upload.single('image'), async (req, re
   res.status(201).json({ id: artwork.id })
 })
 
+app.post('/api/albums', authMiddleware, upload.array('media', 20), async (req, res) => {
+  if (req.user.role !== 'admin') return res.status(403).json({ message: 'Forbidden' })
+
+  const { title, description } = req.body
+  const files = Array.isArray(req.files) ? req.files : []
+  if (!title || !files.length) return res.status(400).json({ message: 'Album title and at least one media file are required' })
+
+  const store = readStore()
+  const mediaItems = files.map((file) => {
+    const base64 = file.buffer.toString('base64')
+    const mimeType = file.mimetype
+    const type = mimeType.startsWith('video/') ? 'video' : mimeType.startsWith('image/') ? 'image' : 'file'
+
+    return {
+      id: crypto.randomUUID(),
+      title: file.originalname,
+      type,
+      mimeType,
+      imageData: type === 'image' ? base64 : '',
+      videoData: type === 'video' ? base64 : '',
+      dataUrl: `data:${mimeType};base64,${base64}`,
+    }
+  })
+
+  const album = {
+    id: crypto.randomUUID(),
+    title,
+    description: description || '',
+    items: mediaItems,
+    cover: mediaItems[0] || null,
+    featured: false,
+    published: true,
+    createdAt: new Date().toISOString(),
+  }
+
+  store.albums.push(album)
+  writeStore(store)
+  res.status(201).json({ id: album.id, mediaCount: mediaItems.length })
+})
+
 app.patch('/api/artworks/:id', authMiddleware, async (req, res) => {
   if (req.user.role !== 'admin') return res.status(403).json({ message: 'Forbidden' })
 
@@ -206,6 +284,15 @@ app.delete('/api/artworks/:id', authMiddleware, async (req, res) => {
 
   const store = readStore()
   store.artworks = store.artworks.filter((art) => art.id !== req.params.id)
+  writeStore(store)
+  res.json({ success: true })
+})
+
+app.delete('/api/albums/:id', authMiddleware, async (req, res) => {
+  if (req.user.role !== 'admin') return res.status(403).json({ message: 'Forbidden' })
+
+  const store = readStore()
+  store.albums = store.albums.filter((album) => album.id !== req.params.id)
   writeStore(store)
   res.json({ success: true })
 })
