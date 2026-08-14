@@ -10,6 +10,7 @@ import fs from 'fs'
 import path from 'path'
 import { fileURLToPath } from 'url'
 import mongoose from 'mongoose'
+import Album from './models/Album.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -70,9 +71,16 @@ const getAllArtworks = () => {
   })
 }
 
-const getAllAlbums = () => {
+const isMongoConnected = () => mongoose.connection.readyState === 1
+
+const getAllAlbums = async () => {
+  if (isMongoConnected()) {
+    const albums = await Album.find().sort({ createdAt: -1 }).lean()
+    return albums
+  }
+
   const store = readStore()
-  return [...store.albums].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+  return [...(store.albums || [])].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
 }
 
 const wrapAlbum = (album) => ({
@@ -157,8 +165,8 @@ app.get('/api/artworks', async (req, res) => {
 })
 
 app.get('/api/albums', async (req, res) => {
-  const albums = getAllAlbums().filter((album) => album.published)
-  res.json(albums.map((album) => wrapAlbum(album)))
+  const albums = await getAllAlbums()
+  res.json(albums.filter((album) => album.published).map((album) => wrapAlbum(album)))
 })
 
 app.get('/api/admin/artworks', authMiddleware, async (req, res) => {
@@ -180,7 +188,7 @@ app.get('/api/admin/artworks', authMiddleware, async (req, res) => {
 app.get('/api/admin/albums', authMiddleware, async (req, res) => {
   if (req.user.role !== 'admin') return res.status(403).json({ message: 'Forbidden' })
 
-  const albums = getAllAlbums()
+  const albums = await getAllAlbums()
   res.json(albums.map((album) => wrapAlbum(album)))
 })
 
@@ -226,7 +234,6 @@ app.post('/api/albums', authMiddleware, upload.array('media', 20), async (req, r
   const files = Array.isArray(req.files) ? req.files : []
   if (!title || !files.length) return res.status(400).json({ message: 'Album title and at least one media file are required' })
 
-  const store = readStore()
   const mediaItems = files.map((file) => {
     const base64 = file.buffer.toString('base64')
     const mimeType = file.mimetype
@@ -254,6 +261,13 @@ app.post('/api/albums', authMiddleware, upload.array('media', 20), async (req, r
     createdAt: new Date().toISOString(),
   }
 
+  if (isMongoConnected()) {
+    const savedAlbum = await Album.create(album)
+    return res.status(201).json({ id: savedAlbum.id, mediaCount: savedAlbum.items.length })
+  }
+
+  const store = readStore()
+  store.albums = store.albums || []
   store.albums.push(album)
   writeStore(store)
   res.status(201).json({ id: album.id, mediaCount: mediaItems.length })
@@ -291,8 +305,13 @@ app.delete('/api/artworks/:id', authMiddleware, async (req, res) => {
 app.delete('/api/albums/:id', authMiddleware, async (req, res) => {
   if (req.user.role !== 'admin') return res.status(403).json({ message: 'Forbidden' })
 
+  if (isMongoConnected()) {
+    await Album.deleteOne({ id: req.params.id })
+    return res.json({ success: true })
+  }
+
   const store = readStore()
-  store.albums = store.albums.filter((album) => album.id !== req.params.id)
+  store.albums = (store.albums || []).filter((album) => album.id !== req.params.id)
   writeStore(store)
   res.json({ success: true })
 })
