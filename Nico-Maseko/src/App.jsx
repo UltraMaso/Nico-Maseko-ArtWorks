@@ -201,6 +201,15 @@ function AdminPage({
   handleCreateAlbum,
   adminAlbums,
   handleDeleteAlbum,
+  editingAlbum,
+  setEditingAlbum,
+  editAlbumTitle,
+  setEditAlbumTitle,
+  editAlbumDescription,
+  setEditAlbumDescription,
+  editAlbumFiles,
+  setEditAlbumFiles,
+  handleUpdateAlbum,
 }) {
   return (
     <div className="panel admin-panel">
@@ -264,6 +273,39 @@ function AdminPage({
         <button type="submit">Create Album</button>
       </form>
 
+      {editingAlbum && (
+        <form onSubmit={handleUpdateAlbum} className="form-grid album-form edit-album-form">
+          <h3>Edit album: {editingAlbum.title}</h3>
+          <label>
+            Album title
+            <input value={editAlbumTitle} onChange={(event) => setEditAlbumTitle(event.target.value)} />
+          </label>
+          <label>
+            Album description
+            <textarea
+              value={editAlbumDescription}
+              onChange={(event) => setEditAlbumDescription(event.target.value)}
+            />
+          </label>
+          <label>
+            Add more images/videos
+            <input
+              type="file"
+              accept="image/*,video/*"
+              multiple
+              onChange={(event) => setEditAlbumFiles(Array.from(event.target.files || []))}
+            />
+          </label>
+          {editAlbumFiles.length > 0 && <p className="info-text">{editAlbumFiles.length} new file(s) selected</p>}
+          <div className="admin-actions">
+            <button type="submit">Save album</button>
+            <button type="button" className="feature-button" onClick={() => setEditingAlbum(null)}>
+              Cancel
+            </button>
+          </div>
+        </form>
+      )}
+
       <form onSubmit={handleBackground} className="form-grid small-grid">
         <label>
           Gallery background
@@ -316,6 +358,14 @@ function AdminPage({
                 <p className="admin-meta">{album.mediaCount} item(s) • Published: {album.published ? 'Yes' : 'No'}</p>
               </div>
               <div className="admin-actions">
+                <button className="feature-button" onClick={() => {
+                  setEditingAlbum(album)
+                  setEditAlbumTitle(album.title)
+                  setEditAlbumDescription(album.description || '')
+                  setEditAlbumFiles([])
+                }}>
+                  Edit album
+                </button>
                 <button className="remove-button" onClick={() => handleDeleteAlbum(album.id)}>
                   Remove album
                 </button>
@@ -353,6 +403,10 @@ function App() {
   const [albumTitle, setAlbumTitle] = useState('')
   const [albumDescription, setAlbumDescription] = useState('')
   const [albumFiles, setAlbumFiles] = useState([])
+  const [editingAlbum, setEditingAlbum] = useState(null)
+  const [editAlbumTitle, setEditAlbumTitle] = useState('')
+  const [editAlbumDescription, setEditAlbumDescription] = useState('')
+  const [editAlbumFiles, setEditAlbumFiles] = useState([])
   const fileInputRef = useRef(null)
 
   const isAdmin = role === 'admin'
@@ -614,6 +668,35 @@ function App() {
     }
   }
 
+  const handleUpdateAlbum = async (event) => {
+    event.preventDefault()
+    if (!editingAlbum) return
+
+    const formData = new FormData()
+    formData.append('title', editAlbumTitle)
+    formData.append('description', editAlbumDescription)
+    editAlbumFiles.forEach((file) => formData.append('media', file))
+
+    try {
+      const response = await fetch(getApiUrl(`/api/albums/${editingAlbum.id}`), {
+        method: 'PATCH',
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData,
+      })
+      const data = await response.json()
+      if (!response.ok) throw new Error(data.message || 'Album update failed')
+      setStatusMessage('Album updated successfully')
+      setEditingAlbum(null)
+      setEditAlbumTitle('')
+      setEditAlbumDescription('')
+      setEditAlbumFiles([])
+      fetchAlbums()
+      fetchAdminAlbums()
+    } catch (error) {
+      setStatusMessage(error.message)
+    }
+  }
+
   const handlePublish = async (id, isPublished) => {
     try {
       const response = await fetch(getApiUrl(`/api/artworks/${id}`), {
@@ -774,6 +857,15 @@ function App() {
                   handleCreateAlbum={handleCreateAlbum}
                   adminAlbums={adminAlbums}
                   handleDeleteAlbum={handleDeleteAlbum}
+                  editingAlbum={editingAlbum}
+                  setEditingAlbum={setEditingAlbum}
+                  editAlbumTitle={editAlbumTitle}
+                  setEditAlbumTitle={setEditAlbumTitle}
+                  editAlbumDescription={editAlbumDescription}
+                  setEditAlbumDescription={setEditAlbumDescription}
+                  editAlbumFiles={editAlbumFiles}
+                  setEditAlbumFiles={setEditAlbumFiles}
+                  handleUpdateAlbum={handleUpdateAlbum}
                 />
               ) : (
                 <Navigate to="/login" replace />

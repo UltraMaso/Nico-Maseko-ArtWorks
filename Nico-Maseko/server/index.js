@@ -302,6 +302,78 @@ app.delete('/api/artworks/:id', authMiddleware, async (req, res) => {
   res.json({ success: true })
 })
 
+app.patch('/api/albums/:id', authMiddleware, upload.array('media', 20), async (req, res) => {
+  if (req.user.role !== 'admin') return res.status(403).json({ message: 'Forbidden' })
+
+  const { title, description } = req.body
+  const files = Array.isArray(req.files) ? req.files : []
+
+  if (isMongoConnected()) {
+    const album = await Album.findOne({ id: req.params.id })
+    if (!album) return res.status(404).json({ message: 'Album not found' })
+
+    if (title) album.title = title
+    if (typeof description !== 'undefined') album.description = description
+
+    if (files.length) {
+      const newItems = files.map((file) => {
+        const base64 = file.buffer.toString('base64')
+        const mimeType = file.mimetype
+        const type = mimeType.startsWith('video/') ? 'video' : mimeType.startsWith('image/') ? 'image' : 'file'
+
+        return {
+          id: crypto.randomUUID(),
+          title: file.originalname,
+          type,
+          mimeType,
+          imageData: type === 'image' ? base64 : '',
+          videoData: type === 'video' ? base64 : '',
+          dataUrl: `data:${mimeType};base64,${base64}`,
+        }
+      })
+
+      album.items = [...(album.items || []), ...newItems]
+      if (!album.cover && album.items.length) album.cover = album.items[0]
+    }
+
+    await album.save()
+    return res.json({ success: true, id: album.id, mediaCount: album.items.length })
+  }
+
+  const store = readStore()
+  const albumIndex = (store.albums || []).findIndex((album) => album.id === req.params.id)
+  if (albumIndex === -1) return res.status(404).json({ message: 'Album not found' })
+
+  if (title) store.albums[albumIndex].title = title
+  if (typeof description !== 'undefined') store.albums[albumIndex].description = description
+
+  if (files.length) {
+    const newItems = files.map((file) => {
+      const base64 = file.buffer.toString('base64')
+      const mimeType = file.mimetype
+      const type = mimeType.startsWith('video/') ? 'video' : mimeType.startsWith('image/') ? 'image' : 'file'
+
+      return {
+        id: crypto.randomUUID(),
+        title: file.originalname,
+        type,
+        mimeType,
+        imageData: type === 'image' ? base64 : '',
+        videoData: type === 'video' ? base64 : '',
+        dataUrl: `data:${mimeType};base64,${base64}`,
+      }
+    })
+
+    store.albums[albumIndex].items = [...(store.albums[albumIndex].items || []), ...newItems]
+    if (!store.albums[albumIndex].cover && store.albums[albumIndex].items.length) {
+      store.albums[albumIndex].cover = store.albums[albumIndex].items[0]
+    }
+  }
+
+  writeStore(store)
+  res.json({ success: true, id: store.albums[albumIndex].id, mediaCount: store.albums[albumIndex].items.length })
+})
+
 app.delete('/api/albums/:id', authMiddleware, async (req, res) => {
   if (req.user.role !== 'admin') return res.status(403).json({ message: 'Forbidden' })
 
