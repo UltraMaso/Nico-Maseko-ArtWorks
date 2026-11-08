@@ -29,9 +29,10 @@ function App() {
   const [featured, setFeatured] = useState(false)
   const [backgroundColor, setBackgroundColor] = useState(() => {
     const savedBackground = localStorage.getItem('galleryBackground')
-    return savedBackground && savedBackground !== '#0f172a' && savedBackground !== '#f5f5f5'
+    return savedBackground &&
+      !['#0f172a', '#f5f5f5', '#09090b'].includes(savedBackground.toLowerCase())
       ? savedBackground
-      : '#09090b'
+      : '#140d55'
   })
   const [backgroundMessage, setBackgroundMessage] = useState('')
   const [albumTitle, setAlbumTitle] = useState('')
