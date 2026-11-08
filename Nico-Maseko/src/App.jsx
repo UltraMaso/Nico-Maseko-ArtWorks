@@ -29,7 +29,9 @@ function App() {
   const [featured, setFeatured] = useState(false)
   const [backgroundColor, setBackgroundColor] = useState(() => {
     const savedBackground = localStorage.getItem('galleryBackground')
-    return savedBackground && savedBackground !== '#0f172a' ? savedBackground : '#f5f5f5'
+    return savedBackground && savedBackground !== '#0f172a' && savedBackground !== '#f5f5f5'
+      ? savedBackground
+      : '#09090b'
   })
   const [backgroundMessage, setBackgroundMessage] = useState('')
   const [albumTitle, setAlbumTitle] = useState('')
@@ -282,15 +284,15 @@ function App() {
         <AlbumModal album={selectedAlbum} onClose={() => setSelectedAlbum(null)} />
 
         <header className="app-header">
-          <div>
-            <p className="tagline">Digital Art Gallery</p>
-            <h1>DAT Studio</h1>
-            <u>
-              <h2>Digital Artwork Platform</h2>
-            </u>
-          
+          <div className="brand-lockup">
+            <div className="brand-emblem" aria-hidden="true">D</div>
+            <div>
+              <p className="tagline">Independent digital art</p>
+              <h1>DAT <span>Studio</span></h1>
+              <p className="header-subtitle">A space for the future of image-making.</p>
+            </div>
           </div>
-        
+
           <NavBar isAdmin={isAdmin} token={token} logout={logout} />
         </header>
 

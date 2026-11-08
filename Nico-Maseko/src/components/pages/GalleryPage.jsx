@@ -16,24 +16,21 @@ function GalleryPage({
 }) {
   return (
     <>
-          <section className="gallery-section">
-        <div className="gallery-header">
-          <h2>Albums</h2>
-          <p>Browse artist albums and open each one to view the full collection.</p>
-        </div>
-        <div className="gallery-grid">
-          {albums.length ? (
-            albums.map((album) => (
-              <AlbumCard key={album.id} album={album} onOpenAlbum={onOpenAlbum} />
-            ))
-          ) : (
-            <p className="empty-list">No albums have been published yet.</p>
-          )}
-        </div>
-      </section>
       <section className="hero-panel">
+        <div className="hero-intro">
+          <p className="eyebrow"><span>01</span> The digital art collection</p>
+          <h2>Art that lives<br /><span>beyond the frame.</span></h2>
+          <p className="hero-description">
+            A considered collection of digital works, where imagination meets
+            the infinite.
+          </p>
+        </div>
         <div className="hero-card">
-          <h2>Featured artwork</h2>
+          <div className="section-kicker">
+            <span>Selected work</span>
+            <span className="section-rule" />
+            <span>DAT / 001</span>
+          </div>
           {currentSlide ? (
             <div className="hero-slide">
               <img
@@ -41,23 +38,30 @@ function GalleryPage({
                 alt={currentSlide.title}
               />
               <div className="hero-copy">
-                <strong>{currentSlide.title}</strong>
+                <div>
+                  <p className="hero-copy-label">Featured artwork</p>
+                  <strong>{currentSlide.title}</strong>
+                </div>
                 <p>{currentSlide.description}</p>
-                <p className="slide-note">
-                  Slide {slideIndex + 1} of {artworks.length}
-                </p>
+                <span className="slide-note">No. {String(slideIndex + 1).padStart(2, '0')}</span>
               </div>
             </div>
           ) : (
-            <div className="hero-empty">No artworks available yet.</div>
+            <div className="hero-empty">
+              <span className="empty-orbit" aria-hidden="true" />
+              <p>Your next favorite artwork is on its way.</p>
+            </div>
           )}
         </div>
       </section>
 
-      {/* <section className="gallery-section">
+      <section className="gallery-section artwork-section">
         <div className="gallery-header">
-          <h2>Gallery</h2>
-          <p>Click an image to open in the slide preview. Admins can remove or toggle featured status.</p>
+          <div>
+            <p className="eyebrow"><span>02</span> The archive</p>
+            <h2>Works in focus</h2>
+          </div>
+          <p>Explore a growing archive of digital pieces, made to be seen a little closer.</p>
         </div>
         <div className="gallery-grid">
           {artworks.length ? (
@@ -75,12 +79,29 @@ function GalleryPage({
               />
             ))
           ) : (
-            <p className="empty-list">No artwork has been uploaded yet.</p>
+            <p className="empty-list">The archive is taking shape. Check back soon.</p>
           )}
         </div>
-      </section> */}
+      </section>
 
-
+      <section className="gallery-section album-section">
+        <div className="gallery-header">
+          <div>
+            <p className="eyebrow"><span>03</span> Collected worlds</p>
+            <h2>Explore by collection</h2>
+          </div>
+          <p>Step into a series and discover the ideas behind each collection.</p>
+        </div>
+        <div className="gallery-grid">
+          {albums.length ? (
+            albums.map((album) => (
+              <AlbumCard key={album.id} album={album} onOpenAlbum={onOpenAlbum} />
+            ))
+          ) : (
+            <p className="empty-list">New collections are being assembled.</p>
+          )}
+        </div>
+      </section>
     </>
   )
 }
