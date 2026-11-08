@@ -439,3 +439,107 @@ button:hover {
     align-items: stretch;
   }
 }
+
+.app-shell {
+  color: #202124;
+}
+
+.app-header h1,
+.app-header h2,
+.gallery-header h2,
+.hero-card h2,
+.hero-copy strong,
+.art-details strong,
+.modal-copy h3 {
+  color: #17191c;
+}
+
+.tagline,
+.intro,
+.status-bar,
+.status-bar button,
+.slide-note,
+.art-details p,
+.empty-list,
+.admin-meta,
+label,
+.feature-button,
+.button-link,
+.nav-link,
+.modal-copy p,
+.info-text {
+  color: #555b62;
+}
+
+.status-bar button,
+.hero-card,
+.art-card,
+.admin-item,
+.panel,
+.image-modal,
+.album-media-item {
+  background: #ffffff;
+  border-color: #d9dce0;
+  box-shadow: 0 12px 32px rgba(20, 24, 28, 0.06);
+}
+
+.hero-slide img,
+.modal-image,
+.album-media-item img,
+.album-media-item video {
+  background: #f1f2f3;
+  border-color: #d9dce0;
+}
+
+.art-card:hover {
+  border-color: #8b9097;
+}
+
+input,
+textarea {
+  background: #ffffff;
+  border-color: #c9cdd2;
+  color: #202124;
+}
+
+button {
+  background: #272a2e;
+  color: #ffffff;
+}
+
+button:hover {
+  background: #555b62;
+}
+
+.remove-button {
+  background: #fff1f1;
+  border-color: #e7b5b5;
+  color: #9f2828;
+}
+
+.badge-featured,
+.role-badge {
+  background: #e7e9ec;
+  color: #3d4248;
+}
+
+.feature-button:hover,
+.button-link:hover,
+.nav-link:hover,
+.nav-link.active {
+  background: #e7e9ec;
+  color: #202124;
+}
+
+.image-modal-backdrop {
+  background: rgba(25, 28, 32, 0.72);
+}
+
+.close-modal-button {
+  background: #e7e9ec;
+  color: #202124;
+}
+
+.error-text {
+  color: #a52c35;
+}

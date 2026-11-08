@@ -54,7 +54,7 @@ function GalleryPage({
         </div>
       </section>
 
-      <section className="gallery-section">
+      {/* <section className="gallery-section">
         <div className="gallery-header">
           <h2>Gallery</h2>
           <p>Click an image to open in the slide preview. Admins can remove or toggle featured status.</p>
@@ -78,7 +78,7 @@ function GalleryPage({
             <p className="empty-list">No artwork has been uploaded yet.</p>
           )}
         </div>
-      </section>
+      </section> */}
 
 
     </>

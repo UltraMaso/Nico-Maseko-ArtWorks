@@ -27,7 +27,10 @@ function App() {
   const [description, setDescription] = useState('')
   const [imageFile, setImageFile] = useState(null)
   const [featured, setFeatured] = useState(false)
-  const [backgroundColor, setBackgroundColor] = useState(localStorage.getItem('galleryBackground') || '#0f172a')
+  const [backgroundColor, setBackgroundColor] = useState(() => {
+    const savedBackground = localStorage.getItem('galleryBackground')
+    return savedBackground && savedBackground !== '#0f172a' ? savedBackground : '#f5f5f5'
+  })
   const [backgroundMessage, setBackgroundMessage] = useState('')
   const [albumTitle, setAlbumTitle] = useState('')
   const [albumDescription, setAlbumDescription] = useState('')
@@ -281,18 +284,13 @@ function App() {
         <header className="app-header">
           <div>
             <p className="tagline">Digital Art Gallery</p>
-            <h1>Nico Maseko</h1>
+            <h1>DAT Studio</h1>
             <u>
               <h2>Digital Artwork Platform</h2>
             </u>
-            <p className="intro">
-              Browse the slide preview, explore the full gallery, and let an admin manage
-              new artwork and the background look.
-            </p>
+          
           </div>
-          <div className="status-bar">
-            <span>{statusMessage || 'Welcome to the gallery.'}</span>
-          </div>
+        
           <NavBar isAdmin={isAdmin} token={token} logout={logout} />
         </header>
 
